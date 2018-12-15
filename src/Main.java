@@ -1,5 +1,4 @@
 public final class Main {
-
   public static void main(String[] args) throws Exception {
     MarkovText prideAndPrejudice =
         MarkovText.fromFile("pride_and_prejudice.txt")
