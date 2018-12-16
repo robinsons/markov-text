@@ -1,3 +1,5 @@
+import markov.MarkovText;
+
 public final class Main {
   public static void main(String[] args) throws Exception {
     MarkovText prideAndPrejudice =

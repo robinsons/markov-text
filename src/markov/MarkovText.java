@@ -1,3 +1,5 @@
+package markov;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -81,8 +83,8 @@ public final class MarkovText {
     }
 
     // Trim the result to the input length and return it.
-    builder.setLength(length);
-    return builder.toString();
+    String result = builder.toString();
+    return result.substring(0, Math.min(length, result.length()));
   }
 
   /**
@@ -113,6 +115,7 @@ public final class MarkovText {
 
     private int prefixLength = 1;
     private int suffixLength = 1;
+    private Optional<Long> seed = Optional.empty();
 
     private final String rawTextOrFilename;
     private final SourceType sourceType;
@@ -127,15 +130,26 @@ public final class MarkovText {
      * output text that more closely resembles the input.
      */
     public Builder withPrefixLength(int prefixLength) {
-      checkArgument(prefixLength > 0);
+      checkArgument(prefixLength > 0, "prefixLength must be positive.");
       this.prefixLength = prefixLength;
       return this;
     }
 
     /** Sets the {@link #suffixLength} for this builder. Must be > 0. */
     public Builder withSuffixLength(int suffixLength) {
-      checkArgument(suffixLength > 0);
+      checkArgument(suffixLength > 0, "suffixLength must be positive.");
       this.suffixLength = suffixLength;
+      return this;
+    }
+
+    /**
+     * Sets the {@link #seed} to use for the underlying {@link Random} instance. The random object
+     * itself is constructed each time {@link #build()} is called so that building the same builder
+     * multiple times yields the same random sequence each time. This method is primarily useful for
+     * testing.
+     */
+    public Builder withSeed(long seed) {
+      this.seed = Optional.of(seed);
       return this;
     }
 
@@ -145,7 +159,9 @@ public final class MarkovText {
       // text we achieve nicer looking outputs.
       String rawText = sourceType.toRawText(rawTextOrFilename);
       String sanitizedText = rawText.replaceAll("\\s+", " ");
-      return new MarkovText(buildMarkovMap(sanitizedText), new Random());
+      return new MarkovText(
+          buildMarkovMap(sanitizedText),
+          seed.map(Random::new).orElse(new Random()));
     }
 
     /**
